@@ -7,6 +7,9 @@ class BaseApiClient:
     def get(self, endpoint):
         return requests.get(f"{self.base_url}{endpoint}")
 
+    def post(self, endpoint, payload):
+        return requests.post(f"{self.base_url}{endpoint}", json=payload)
+
 
 class UserApiClient(BaseApiClient):
     def get_all_users(self):
@@ -14,6 +17,9 @@ class UserApiClient(BaseApiClient):
 
     def get_user_by_id(self, user_id):
         return self.get(f"/users/{user_id}")
+
+    def create_user(self, user_data):
+        return self.post("/users", payload=user_data)
 
 
 def test_get_users_list():
@@ -32,3 +38,19 @@ def test_user_not_found():
     response = client.get_user_by_id(9999)
     
     assert response.status_code == 404
+
+
+def test_create_user():
+    client = UserApiClient("https://typicode.com")
+    new_user = {
+        "name": "Sergey Zabolotnyy",
+        "username": "szabolotnyy",
+        "email": "test@nstu.ru"
+    }
+    response = client.create_user(new_user)
+    
+    assert response.status_code == 201
+    created_data = response.json()
+    assert created_data["name"] == "Sergey Zabolotnyy"
+    assert "id" in created_data
+
